@@ -615,7 +615,7 @@ static void GL_InitInstance (void)
 	if (!SDL_Vulkan_GetInstanceExtensions (draw_context, &sdl_extension_count, NULL))
 		Sys_Error ("SDL_Vulkan_GetInstanceExtensions failed: %s", SDL_GetError ());
 
-	const char **const instance_extensions = Mem_Alloc (sizeof (const char *) * (sdl_extension_count + 3));
+	const char **const instance_extensions = Mem_Alloc (sizeof (const char *) * (sdl_extension_count + 4));
 	if (!SDL_Vulkan_GetInstanceExtensions (draw_context, &sdl_extension_count, instance_extensions))
 		Sys_Error ("SDL_Vulkan_GetInstanceExtensions failed: %s", SDL_GetError ());
 
@@ -626,6 +626,7 @@ static void GL_InitInstance (void)
 
 	vulkan_globals.get_surface_capabilities_2 = false;
 	vulkan_globals.get_physical_device_properties_2 = false;
+	qboolean use_portability_enumeration = false;
 	if (err == VK_SUCCESS || instance_extension_count > 0)
 	{
 		VkExtensionProperties *extension_props = (VkExtensionProperties *)Mem_Alloc (sizeof (VkExtensionProperties) * instance_extension_count);
@@ -637,6 +638,8 @@ static void GL_InitInstance (void)
 				vulkan_globals.get_surface_capabilities_2 = true;
 			if (strcmp (VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, extension_props[i].extensionName) == 0)
 				vulkan_globals.get_physical_device_properties_2 = true;
+ 			if (strcmp (VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME, extension_props[i].extensionName) == 0)
+ 				use_portability_enumeration = true;
 #if _DEBUG
 			if (strcmp (VK_EXT_DEBUG_UTILS_EXTENSION_NAME, extension_props[i].extensionName) == 0)
 				vulkan_globals.debug_utils = true;
@@ -677,6 +680,11 @@ static void GL_InitInstance (void)
 		instance_extensions[sdl_extension_count + additionalExtensionCount++] = VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME;
 	if (vulkan_globals.get_physical_device_properties_2)
 		instance_extensions[sdl_extension_count + additionalExtensionCount++] = VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
+ 	if (use_portability_enumeration)
+ 	{
+ 		instance_extensions[sdl_extension_count + additionalExtensionCount++] = VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME;
+ 		instance_create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+ 	}
 
 #ifdef _DEBUG
 	if (vulkan_globals.debug_utils)

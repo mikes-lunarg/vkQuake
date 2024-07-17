@@ -148,11 +148,12 @@ deps = [
     cc.find_library('m', required : false),
     cc.find_library('dl', required : false),
     dependency('threads'),
-    dependency('sdl2'),
+    #dependency('sdl2'),
 ]
 
 if build_machine.system() == 'darwin'
-    molten_dirs = []
+    molten_dirs = ['/Users/mike/VulkanSDK/1.3.290.0/macOS/lib']
+    #molten_dirs = []
     if import('fs').exists('/opt/homebrew/lib/libMoltenVK.dylib')
         molten_dirs += '/opt/homebrew/lib'
     endif
@@ -224,6 +225,28 @@ endif
 
 incdirs = [
     'Quake/mimalloc',
+    '/Users/mike/VulkanSDK/1.3.290.0/macOS/include',
+    '/Users/mike/VulkanSDK/1.3.290.0/macOS/include/SDL2'
 ]
 
-executable('vkquake', [srcs, shaders_c], dependencies : deps, include_directories : incdirs, c_args : cflags, c_pch: ['Quake/quakedef.h', 'Quake/quakedef.c'])
+linker_flags = [
+'-lSDL2',
+#'-liconv',
+'-L/Users/mike/VulkanSDK/1.3.290.0/macOS/lib',
+'-framework','AVFoundation',
+'-framework','AudioToolbox',
+'-framework','Carbon',
+'-framework','Cocoa',
+'-framework','CoreAudio',
+'-framework','CoreGraphics',
+'-framework','CoreHaptics',
+'-framework','CoreMotion',
+'-framework','ForceFeedback',
+'-framework','Foundation',
+'-framework','GameController',
+'-framework','IOKit',
+'-framework','ImageIO',
+'-framework','Metal',
+'-framework','QuartzCore',
+]
+executable('vkquake', [srcs, shaders_c], dependencies : deps, include_directories : incdirs, c_args : cflags, c_pch: ['Quake/quakedef.h', 'Quake/quakedef.c'], link_args : linker_flags )
